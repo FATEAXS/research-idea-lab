@@ -19,14 +19,21 @@ llm:
   temperature: 0.7
   timeout: 120                     # 单次请求超时（秒）
 
-  # 角色异构：不同角色可以配不同模型。
-  # 建议评审/终审用你最强的模型，起草(researcher)可用便宜模型压成本。
+  # 角色异构：不同角色可各配不同模型，甚至混用不同厂商。
+  # 简单写法：字符串 = 使用全局 base_url/api_key；
+  # 混厂商写法：字典 = 该角色单独指定 model/base_url/api_key（api_key 可用环境变量）。
   models:
-    researcher: glm-4.6            # Agent A：调研 / 提出idea / 修订 / 实验规格
-    reviewer_domain: glm-4.6       # B：领域专家，负责查重（novelty）
-    reviewer_cross: glm-4.6        # C：跨领域专家，负责方法迁移
-    reviewer_theory: glm-4.6       # D：理论红队，负责可行性证伪
-    meta: glm-4.6                  # 导师/主席：终审，决定 继续/修订/毙掉
+    researcher: deepseek-chat            # A：调研 / 提出idea / 修订 / 实验规格
+    reviewer_domain: deepseek-reasoner   # B：领域查重（推理模型更强）
+    reviewer_cross:                      # C：跨领域迁移——示例：混用智谱 GLM
+      model: glm-4.6
+      base_url: https://open.bigmodel.cn/api/paas/v4
+      api_key: ${ZHIPU_API_KEY}
+    reviewer_theory:                     # D：理论红队——示例：混用阿里 Qwen
+      model: qwen-max
+      base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key: ${DASHSCOPE_API_KEY}
+    meta: deepseek-reasoner              # 导师/主席：终审，决定 继续/修订/毙掉
 
 retrieval:
   providers: [arxiv, crossref]     # 可选：arxiv / crossref（免key，期刊全）/ openalex（免key）/ s2（需key）

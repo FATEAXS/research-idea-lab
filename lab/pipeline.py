@@ -65,11 +65,28 @@ class Pipeline:
             (self.run_dir / sub).mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
+    def _resolve_model(self, model_role):
+        """解析角色的模型配置：字符串=用全局服务；字典=可覆盖 model/base_url/api_key
+        （实现不同角色混用不同厂商的专家模型）。"""
+        llm_cfg = self.cfg["llm"]
+        models = llm_cfg.get("models", {})
+        spec = models.get(model_role) or models.get("researcher")
+        base_url = llm_cfg.get("base_url")
+        api_key = llm_cfg.get("api_key")
+        if isinstance(spec, dict):
+            fallback = models.get("researcher")
+            model = spec.get("model") or \
+                (fallback if isinstance(fallback, str) else "deepseek-chat")
+            base_url = spec.get("base_url", base_url)
+            api_key = spec.get("api_key", api_key)
+            return str(model), base_url, api_key
+        return str(spec), base_url, api_key
+
     def _call(self, model_role, task, prompt_name, **variables):
         system, user = promptkit.render(self.prompts_dir, prompt_name, **variables)
-        model = self.cfg["llm"]["models"].get(model_role) or \
-            self.cfg["llm"]["models"]["researcher"]
-        return call_json(self.llm, model, task, system, user)
+        model, base_url, api_key = self._resolve_model(model_role)
+        return call_json(self.llm, model, task, system, user,
+                         base_url=base_url, api_key=api_key)
 
     @staticmethod
     def _save(path, data):

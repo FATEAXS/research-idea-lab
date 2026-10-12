@@ -65,19 +65,23 @@ def extract_json(text: str) -> dict:
 
 
 class OpenAICompatClient:
-    """任何 OpenAI 兼容服务（智谱/DeepSeek/Qwen/OpenAI/vLLM/Ollama...）。"""
+    """任何 OpenAI 兼容服务（智谱/DeepSeek/Qwen/OpenAI/vLLM/Ollama...）。
+    支持按调用覆盖 base_url/api_key，实现不同角色混用不同厂商的模型。"""
 
     def __init__(self, cfg: dict, usage: Usage):
         self.cfg = cfg["llm"]
         self.usage = usage
-        if not self.cfg.get("api_key"):
+
+    def chat(self, messages, model: str, task: str,
+             base_url: str = None, api_key: str = None) -> str:
+        key = api_key or self.cfg.get("api_key") or ""
+        if not key:
             raise RuntimeError(
                 "未配置 api_key。请设置环境变量 IDEA_LAB_API_KEY，"
-                "或在 config.yaml 的 llm.api_key 里填写。"
+                "或在 config.yaml 的 llm.api_key（或对应角色条目的 api_key）里填写。"
             )
-
-    def chat(self, messages, model: str, task: str) -> str:
-        url = self.cfg["base_url"].rstrip("/") + "/chat/completions"
+        url = (base_url or self.cfg.get("base_url") or "").rstrip("/") \
+            + "/chat/completions"
         body = {
             "model": model,
             "messages": messages,
@@ -86,7 +90,7 @@ class OpenAICompatClient:
             "max_tokens": self.cfg.get("max_tokens", 8000),
         }
         headers = {
-            "Authorization": f"Bearer {self.cfg['api_key']}",
+            "Authorization": f"Bearer {key}",
             "Content-Type": "application/json",
         }
         last_err = None
@@ -112,12 +116,14 @@ class OpenAICompatClient:
 
 
 def call_json(llm, model: str, task: str, system: str, user: str,
-              max_retries: int = 3) -> dict:
+              max_retries: int = 3, base_url: str = None,
+              api_key: str = None) -> dict:
     """调用模型并强制解析为 JSON；失败则把错误反馈给模型重试。"""
     messages = [{"role": "system", "content": system},
                 {"role": "user", "content": user}]
     for attempt in range(max_retries):
-        raw = llm.chat(messages, model=model, task=task)
+        raw = llm.chat(messages, model=model, task=task,
+                       base_url=base_url, api_key=api_key)
         try:
             return extract_json(raw)
         except Exception as e:
@@ -273,7 +279,8 @@ class MockClient:
     def __init__(self, cfg: dict, usage: Usage):
         self.usage = usage
 
-    def chat(self, messages, model: str, task: str) -> str:
+    def chat(self, messages, model: str, task: str,
+             base_url: str = None, api_key: str = None) -> str:
         if task not in MOCK_RESPONSES:
             raise KeyError(f"Mock 模式未实现任务：{task}")
         self.usage.calls += 1
