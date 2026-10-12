@@ -1,0 +1,14 @@
+# ===== 绝不能提交：API 密钥配置 =====
+config.yaml
+
+# ===== 运行产物（每次实验的档案，体积大且含个人研究方向）=====
+runs/
+runs_pv/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+
+# ===== 系统杂项 =====
+.DS_Store
+Thumbs.db

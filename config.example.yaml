@@ -1,0 +1,47 @@
+# =====================================================================
+# 科研Idea迭代实验室 配置文件
+# 使用方法：复制为 config.yaml 后修改。api_key 建议走环境变量，不要明文提交。
+#   Windows (PowerShell):  $env:IDEA_LAB_API_KEY = "你的key"
+#   Windows (CMD):         set IDEA_LAB_API_KEY=你的key
+#   Linux / macOS:         export IDEA_LAB_API_KEY=你的key
+# =====================================================================
+
+llm:
+  # 任何 OpenAI 兼容服务都可用：智谱 / DeepSeek / Qwen(DashScope) / Moonshot / OpenAI / 本地 vLLM、Ollama
+  # 常用 base_url 示例：
+  #   智谱:     https://open.bigmodel.cn/api/paas/v4
+  #   DeepSeek: https://api.deepseek.com/v1
+  #   Qwen:     https://dashscope.aliyuncs.com/compatible-mode/v1
+  #   OpenAI:   https://api.openai.com/v1
+  provider: openai_compat          # openai_compat | mock（mock=离线演示，不花钱不联网调模型）
+  base_url: https://open.bigmodel.cn/api/paas/v4
+  api_key: ${IDEA_LAB_API_KEY}     # 从环境变量读取；也可直接填字符串
+  temperature: 0.7
+  timeout: 120                     # 单次请求超时（秒）
+
+  # 角色异构：不同角色可以配不同模型。
+  # 建议评审/终审用你最强的模型，起草(researcher)可用便宜模型压成本。
+  models:
+    researcher: glm-4.6            # Agent A：调研 / 提出idea / 修订 / 实验规格
+    reviewer_domain: glm-4.6       # B：领域专家，负责查重（novelty）
+    reviewer_cross: glm-4.6        # C：跨领域专家，负责方法迁移
+    reviewer_theory: glm-4.6       # D：理论红队，负责可行性证伪
+    meta: glm-4.6                  # 导师/主席：终审，决定 继续/修订/毙掉
+
+retrieval:
+  providers: [arxiv, crossref]     # 可选：arxiv / crossref（免key，期刊全）/ openalex（免key）/ s2（需key）
+  max_per_query: 8                 # 每条查询每个来源最多取几篇
+  quality_filter: true             # 期刊分级过滤：一区二区/CCF-A-B/顶会才放行，拿不准剔除
+  s2_api_key: ""                   # Semantic Scholar 无 key 限流极严，建议申请；没有也能跑
+  arxiv_min_interval: 3.0          # arXiv 官方要求请求间隔（秒）
+  s2_min_interval: 1.2
+  openalex_min_interval: 0.5
+  crossref_min_interval: 1.0
+
+pipeline:
+  num_ideas: 4                     # 第一轮生成的 idea 数量（建议3~5）
+  max_rounds: 2                    # 「评审→辩论→终审→修订」的最大轮数（组会不会无限开）
+  debate: true                     # 独立评审后是否加一轮匿名辩论（更接近真实组会，token 翻倍）
+  kill_threshold: 4.0              # advance门槛：加权分低于此值不允许直接进实验（不会覆盖导师的revise/kill判断）
+  converge_epsilon: 0.3            # 相邻两轮平均加权分提升小于此值 → 判定收敛提前结束
+  spec_top_k: 1                    # 结束后为排名前K的idea生成实验规格（预注册文档）
