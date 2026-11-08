@@ -153,10 +153,20 @@ class Pipeline:
         except Exception as e:
             log.warning("oral 模式库加载失败（跳过）：%s", e)
             oral_patterns = ""
+        # 「先学后提」闭环：A 先消化模式库+综述，写出研究品味笔记
+        taste_notes = ""
+        try:
+            tn = self._call("researcher", "taste_notes", "a_taste_notes",
+                            oral_patterns=oral_patterns, survey=survey_md)
+            taste_notes = json.dumps(tn, ensure_ascii=False, indent=2)
+            self._save(self.run_dir / "survey" / "taste_notes.json", tn)
+            log.info("研究品味笔记已生成（%d 字）", len(taste_notes))
+        except Exception as e:
+            log.warning("品味笔记生成失败（跳过，直接提idea）：%s", e)
         n = int(self.cfg["pipeline"].get("num_ideas", 4))
         resp = self._call("researcher", "ideate", "a_ideate", topic=topic,
                           survey=survey_md, insights=insights, num_ideas=n,
-                          oral_patterns=oral_patterns)
+                          oral_patterns=oral_patterns, taste_notes=taste_notes)
         cards = [IdeaCard(d, i)
                  for i, d in enumerate(resp.get("ideas") or [], 1)][:n]
         if not cards:

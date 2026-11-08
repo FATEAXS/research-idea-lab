@@ -231,6 +231,11 @@ MOCK_RESPONSES = {
          "how_to_verify": "先在SST-2每类8样本上验证子集选择带来的梯度信噪比提升",
          "biggest_risk": "子集选择本身的开销可能抵消训练节省"},
         ensure_ascii=False),
+    "taste_notes": lambda msgs: json.dumps(
+        {"taste_notes": "本领域oral靠：可证伪的小机制打大问题；评测空隙即机会；training-free是卖点",
+         "candidate_gaps": ["冲突记忆消解缺统一评测协议", "记忆写入决策多为一刀切阈值"],
+         "style_rules": ["每个idea先写go/no-go判据", "必须点名最接近的三个先行工作"]},
+        ensure_ascii=False),
     "spec": lambda msgs: json.dumps(
         {"markdown": "# 实验规格（预注册，Mock）\n\n## 冻结项\n- 数据集：SuperGLUE子集、CLUE\n"
                      "- 基线：全量微调 / LoRA / Prefix-Tuning\n- 指标：准确率、显存、时长\n"
