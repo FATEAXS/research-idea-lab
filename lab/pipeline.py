@@ -65,6 +65,13 @@ class Pipeline:
             (self.run_dir / sub).mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
+    def _memory_path(self) -> Path:
+        return Path(__file__).resolve().parent.parent / "memory" / "research_memory.md"
+
+    def _load_memory(self) -> str:
+        p = self._memory_path()
+        return p.read_text(encoding="utf-8") if p.exists() else "（尚无跨场次记忆）"
+
     def _resolve_model(self, model_role):
         """解析角色的模型配置：字符串=用全局服务；字典=可覆盖 model/base_url/api_key
         （实现不同角色混用不同厂商的专家模型）。"""
@@ -153,11 +160,15 @@ class Pipeline:
         except Exception as e:
             log.warning("oral 模式库加载失败（跳过）：%s", e)
             oral_patterns = ""
-        # 「先学后提」闭环：A 先消化模式库+综述，写出研究品味笔记
+        # 「先学后提」闭环：A 先消化模式库+综述+跨场次记忆，写出研究品味笔记
         taste_notes = ""
+        past_memory = self._load_memory()
+        if past_memory and "尚未积累" not in past_memory and "暂无" not in past_memory:
+            log.info("已载入跨场次研究记忆（%d 字）", len(past_memory))
         try:
             tn = self._call("researcher", "taste_notes", "a_taste_notes",
-                            oral_patterns=oral_patterns, survey=survey_md)
+                            oral_patterns=oral_patterns, survey=survey_md,
+                            past_memory=past_memory)
             taste_notes = json.dumps(tn, ensure_ascii=False, indent=2)
             self._save(self.run_dir / "survey" / "taste_notes.json", tn)
             log.info("研究品味笔记已生成（%d 字）", len(taste_notes))
@@ -450,6 +461,28 @@ class Pipeline:
             seed_mode=getattr(self, "seed_mode", False))
         (self.run_dir / "final" / "report.md").write_text(
             report_md, encoding="utf-8")
+
+        # 更新跨场次研究记忆（品味沉淀 + 评审教训 + 方向去重清单）
+        if self.cfg.get("memory", {}).get("enabled", True):
+            try:
+                tn = ""
+                tf = self.run_dir / "survey" / "taste_notes.json"
+                if tf.exists():
+                    tn = tf.read_text(encoding="utf-8")
+                verdicts = "\n".join(
+                    f"- {e['id']} {e['title'][:40]}：{e['verdict']}"
+                    f"（加权{e['weighted']}，理由：{(e['history'][-1].get('rationale') or '')[:60]}）"
+                    for e in entries)
+                upd = self._call("researcher", "memory_update", "a_memory_update",
+                                 past_memory=self._load_memory(),
+                                 taste_notes=tn or "（本场无品味笔记）",
+                                 verdicts_summary=verdicts)
+                mem = str(upd.get("memory") or "").strip()
+                if mem:
+                    self._memory_path().write_text(mem, encoding="utf-8")
+                    log.info("跨场次研究记忆已更新（%d 字）", len(mem))
+            except Exception as e:
+                log.warning("研究记忆更新失败（不影响报告）：%s", e)
 
         top_k = int(self.cfg["pipeline"].get("spec_top_k", 1))
         specd = 0

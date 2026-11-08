@@ -236,6 +236,9 @@ MOCK_RESPONSES = {
          "candidate_gaps": ["冲突记忆消解缺统一评测协议", "记忆写入决策多为一刀切阈值"],
          "style_rules": ["每个idea先写go/no-go判据", "必须点名最接近的三个先行工作"]},
         ensure_ascii=False),
+    "memory_update": lambda msgs: json.dumps(
+        {"memory": "# 科研研究记忆（自动更新）\n\n## 研究品味\n- 可证伪的小机制打大问题（Mock）\n"},
+        ensure_ascii=False),
     "spec": lambda msgs: json.dumps(
         {"markdown": "# 实验规格（预注册，Mock）\n\n## 冻结项\n- 数据集：SuperGLUE子集、CLUE\n"
                      "- 基线：全量微调 / LoRA / Prefix-Tuning\n- 指标：准确率、显存、时长\n"
