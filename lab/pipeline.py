@@ -145,9 +145,18 @@ class Pipeline:
 
     def phase_ideate(self, topic, survey_md, insights):
         log.info("== 阶段2/4：提出idea ==")
+        # oral 论文模式学习：静态模式库（+可选匿名OpenReview增强，默认关）
+        from lab import openreview as _or
+        try:
+            oral_patterns = _or.build_oral_patterns(
+                self.cfg.get("openreview", {}), mock=self.mock, topic=topic)
+        except Exception as e:
+            log.warning("oral 模式库加载失败（跳过）：%s", e)
+            oral_patterns = ""
         n = int(self.cfg["pipeline"].get("num_ideas", 4))
         resp = self._call("researcher", "ideate", "a_ideate", topic=topic,
-                          survey=survey_md, insights=insights, num_ideas=n)
+                          survey=survey_md, insights=insights, num_ideas=n,
+                          oral_patterns=oral_patterns)
         cards = [IdeaCard(d, i)
                  for i, d in enumerate(resp.get("ideas") or [], 1)][:n]
         if not cards:
