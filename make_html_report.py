@@ -115,6 +115,7 @@ def idea_section(run_dir, idea_id, rounds, ranked_info):
             f'<div class="tldr"><div class="oneliner">💡 {esc(tldr.get("one_liner", ""))}</div>'
             f'<b>核心创新</b><ul>{inn}</ul>'
             f'<p><b>方法核心</b>：{esc(tldr.get("method_core"))}</p>'
+            f'<p><b>具体走查</b>：{esc(tldr.get("concrete_example"))}</p>'
             f'<p><b>和最接近工作的区别</b>：{esc(tldr.get("vs_prior"))}</p>'
             f'<p><b>凭什么成立</b>：{esc(tldr.get("why_works"))}</p>'
             f'<p><b>成功标准</b>：{esc(tldr.get("success_criteria"))}</p>'

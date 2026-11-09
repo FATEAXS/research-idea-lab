@@ -16,8 +16,9 @@
 1. 逐条处理 action_items：能解决的直接改进卡片；不能解决的，如实写进 risks，不要回避；
 2. key_related_work 必须根据评审指出的先行工作更新（这是查重的结果，要尊重证据）；
 3. hypothesis 和 evaluation_plan 若被质疑，必须具体修订；
-4. 保持原方向，不要为了讨好评审而换成另一个题目；
-5. 输出**完整的新版卡片**，字段结构不变。
+4. **method_sketch 必须保持伪代码级具体性**：核心公式 + 3~6步算法流程 + 一个具体走查例子 + 关键阈值，评审若指出「太抽象」，这次修订必须补出具体计算；
+5. 保持原方向，不要为了讨好评审而换成另一个题目；
+6. 输出**完整的新版卡片**，字段结构不变。
 
 只输出 JSON（完整卡片）：
 {"id": "...", "title": "...", "problem": "...", "hypothesis": "...", "method_sketch": "...", "key_related_work": [{"title": "...", "overlap": "..."}], "expected_result": "...", "evaluation_plan": {"datasets": [], "baselines": [], "metrics": []}, "risks": [], "novelty_claim": "..."}

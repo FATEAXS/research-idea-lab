@@ -73,7 +73,8 @@ class OpenAICompatClient:
         self.usage = usage
 
     def chat(self, messages, model: str, task: str,
-             base_url: str = None, api_key: str = None) -> str:
+             base_url: str = None, api_key: str = None,
+             max_tokens: int = None) -> str:
         key = api_key or self.cfg.get("api_key") or ""
         if not key:
             raise RuntimeError(
@@ -87,7 +88,7 @@ class OpenAICompatClient:
             "messages": messages,
             "temperature": self.cfg.get("temperature", 0.7),
             # 不设会给 4K 默认值，长 JSON 会被截断成不完整对象
-            "max_tokens": self.cfg.get("max_tokens", 8000),
+            "max_tokens": max_tokens or self.cfg.get("max_tokens", 8000),
         }
         headers = {
             "Authorization": f"Bearer {key}",
@@ -117,13 +118,14 @@ class OpenAICompatClient:
 
 def call_json(llm, model: str, task: str, system: str, user: str,
               max_retries: int = 3, base_url: str = None,
-              api_key: str = None) -> dict:
+              api_key: str = None, max_tokens: int = None) -> dict:
     """调用模型并强制解析为 JSON；失败则把错误反馈给模型重试。"""
     messages = [{"role": "system", "content": system},
                 {"role": "user", "content": user}]
     for attempt in range(max_retries):
         raw = llm.chat(messages, model=model, task=task,
-                       base_url=base_url, api_key=api_key)
+                       base_url=base_url, api_key=api_key,
+                       max_tokens=max_tokens)
         try:
             return extract_json(raw)
         except Exception as e:
@@ -288,7 +290,8 @@ class MockClient:
         self.usage = usage
 
     def chat(self, messages, model: str, task: str,
-             base_url: str = None, api_key: str = None) -> str:
+             base_url: str = None, api_key: str = None,
+             max_tokens: int = None) -> str:
         if task not in MOCK_RESPONSES:
             raise KeyError(f"Mock 模式未实现任务：{task}")
         self.usage.calls += 1
