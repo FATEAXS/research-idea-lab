@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>方法设计</title><style>
+body{font-family:"Microsoft YaHei",system-ui,sans-serif;max-width:920px;margin:28px auto;
+     padding:0 18px;color:#222;line-height:1.75;background:#fafafa}
+h1{font-size:1.5em;border-bottom:3px solid #2c6fbb;padding-bottom:8px}
+h2{font-size:1.25em;border-bottom:1px solid #d5d5d5;padding-bottom:4px;margin-top:1.8em}
+h3{color:#2c6fbb}
+code{background:#f0f2f5;border-radius:4px;padding:1px 5px;font-family:Consolas,monospace}
+pre{background:#f0f2f5;border-radius:8px;padding:12px 14px;overflow-x:auto}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92em}
+th,td{border:1px solid #e0e0e0;padding:7px 10px;text-align:left}
+th{background:#eef3f9}
+blockquote{border-left:4px solid #2c6fbb;background:#eef4fb;margin:12px 0;padding:8px 14px;color:#345}
+strong{color:#111}
+</style></head><body><h1>「Agent记忆」顶会故事角度候选（三评审模型独立盲评，按平均总分排序）</h1>
+<table>
+<thead>
+<tr>
+<th>排名</th>
+<th>总分</th>
+<th>故事一句话</th>
+<th>贡献类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>38.67</strong></td>
+<td>所有长期记忆系统都在为结构化提前付费，但没人先让它们通过『把原文都留着』这个最朴素门槛。</td>
+<td>新实证分析</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>37.67</strong></td>
+<td>如果一条记忆不能改变 agent 的下一步动作，它就只是日志，不是记忆。</td>
+<td>新基准</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>35.67</strong></td>
+<td>长期记忆的真正失败不是忘得太快，而是写入时太早决定未来哪些问题还能被回答。</td>
+<td>新机制</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>33.33</strong></td>
+<td>Agent 记忆冲突不是检索不准，而是系统默认每条记忆都永远有效。</td>
+<td>新问题形式化</td>
+</tr>
+</tbody>
+</table>
+<h2>排名1（38.67 分）：所有长期记忆系统都在为结构化提前付费，但没人先让它们通过『把原文都留着』这个最朴素门槛。</h2>
+<p><strong>五维评分</strong>：钩子 8.0｜证据 8.0｜顶会契合 8.0｜可行性 7.7｜差异化 7.0</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=35，reviewer_cross=38，meta=43</p>
+<p><strong>针对的问题</strong>：长期记忆领域默认结构化写入、图索引和摘要巩固会优于原文保留，但 Raw-RAG、MemMachine 等结果显示朴素原文检索常常很强；与此同时，MemGPT、HippoRAG、MemORAI 等复杂机制很少在同一任务效用、token/延迟/存储预算和失败归因下被审计，导致额外复杂度是否必要无法验证。</p>
+<p><strong>为什么是现在</strong>：Raw-RAG 和 MemMachine 已经给出反例，MERIT 开始引入成本感知评价，长上下文与检索成本也可被统一测量，因此第一次可以把记忆复杂度当成可审计的成本-收益问题，而不是默认正确的架构信仰。</p>
+<p><strong>模式对标</strong>：对应模式库中的『识别现有方法的结构性浪费，给出轻量替代』，类似 QLoRA 追问最贵的一步是否必要；也接近 DPO 把默认复杂流程重新审视为可检验假设。</p>
+<p><strong>贡献类型</strong>：新实证分析</p>
+<p><strong>验证路径</strong>：在 LongMemEval、LoCoMo、MERIT 上统一评测 Raw-RAG、MemGPT、HippoRAG、MemORAI，并构造成本-效果 Pareto 前沿；若审计能指出多数复杂机制在等预算下不优于原文检索，且只在可预测失败子集上必要，说明记忆复杂度应按需购买。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人可能认为这只是负面评测，缺少建设性贡献；也可能攻击基线选择、提示词或成本核算不公平，需要给出可复现的审计协议和明确的失败子集定义。</p>
+<p><strong>评审一句话</strong>：成本-收益审计是有力的怀疑论叙事，但可能被看作仅做负向评测，且与候选2存在视角重叠。</p>
+<h2>排名2（37.67 分）：如果一条记忆不能改变 agent 的下一步动作，它就只是日志，不是记忆。</h2>
+<p><strong>五维评分</strong>：钩子 9.3｜证据 7.0｜顶会契合 8.7｜可行性 4.7｜差异化 8.0</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=36，reviewer_cross=35，meta=42</p>
+<p><strong>针对的问题</strong>：LongMemEval、LoCoMo 等长期记忆评测主要衡量对话问答召回，默认答对就等于记忆有效；但 agent 场景需要记忆改变工具选择、计划修正和错误恢复。MERIT 引入任务效用和成本，却仍未把写入、检索、更新、遗忘拆成可控因子做因果评估，因此没人真正量过记忆操作是否改变行动。</p>
+<p><strong>为什么是现在</strong>：MERIT、MemoryAgentBench、FHIR-AgentEval、MedAgentBench、SoMe 等 agent 环境已经出现，长期个性化、工具使用和跨会话决策开始成为主战场，但记忆评测仍停留在问答召回，评测空隙已经足够大。</p>
+<p><strong>模式对标</strong>：对应模式库中的『评测空隙 = 顶会机会』，类似 LongMemEval 发现长程记忆缺乏严谨基准，但进一步把评测对象从回答正确推进到行动改变和因子化因果贡献。</p>
+<p><strong>贡献类型</strong>：新基准</p>
+<p><strong>验证路径</strong>：构建支持记忆注入、移除、污染、过期开关的跨会话工具任务，评测无记忆、全上下文、Raw-RAG 和主流记忆系统；若任务排名与长对话 QA 显著不同，并能拆出写入/检索/更新/遗忘对行动改变的因果贡献，说明评测空隙真实且重要。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人可能质疑任务人工化、领域覆盖窄、实现复杂或只是现有 agent 基准加记忆变量；需要证明基准能稳定暴露主流方法的新失败，并且结论不能由现有 QA 基准推出。</p>
+<p><strong>评审一句话</strong>：“记忆必须改变行动”的宣言最具挑衅性且评测空隙真实，但新基准构建任务重，一周可能难以完整。</p>
+<h2>排名3（35.67 分）：长期记忆的真正失败不是忘得太快，而是写入时太早决定未来哪些问题还能被回答。</h2>
+<p><strong>五维评分</strong>：钩子 8.7｜证据 6.3｜顶会契合 7.7｜可行性 5.3｜差异化 7.7</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=33，reviewer_cross=33，meta=41</p>
+<p><strong>针对的问题</strong>：主流写入式记忆假设：为了长期可用，必须在写入时把对话、工具轨迹或文档压缩成摘要、事实、事件或图；但该假设未被验证，且写入时压缩会提前固定可回答问题，损害未来不可知查询、版本恢复和冲突消解。MemFit 降低写入成本却可能加重过早压缩，Raw-RAG 保留原文却没有把查询时重构作为核心机制。</p>
+<p><strong>为什么是现在</strong>：长上下文、模型原生上下文编辑和 CLM 式『上下文即文件』的抽象，使查询时装配、延迟物化和按需重构变得可行；同时长期 agent 任务的查询不可预知，写入时压缩的不可逆损失开始成为核心瓶颈。</p>
+<p><strong>模式对标</strong>：对应模式库中的『把隐式假设变成可检验的问题』，类似 DPO 质疑 RLHF 必须两阶段；也接近 CLM 把外部补丁移进模型本体的叙事。</p>
+<p><strong>贡献类型</strong>：新机制</p>
+<p><strong>验证路径</strong>：在跨会话对话、工具轨迹和版本更新任务上，对比写入时摘要、事实抽取、图记忆与延迟物化/查询时重构，基线包括 Raw-RAG、MemFit、MemMachine；若在未来不可知查询、冲突恢复和成本-效果上赢，说明记忆应从写入时压缩转向查询时装配。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人最可能攻击存储、检索和长上下文成本过高，或认为查询时重构不稳定；需要证明在大规模记忆和严格预算下仍优于写入时压缩，而不是只在短历史或小规模任务上成立。</p>
+<p><strong>评审一句话</strong>：“写入过早决定未来”的钩子很锋利，但查询时重构缺乏现成实现，一周内验证风险偏高。</p>
+<h2>排名4（33.33 分）：Agent 记忆冲突不是检索不准，而是系统默认每条记忆都永远有效。</h2>
+<p><strong>五维评分</strong>：钩子 8.0｜证据 6.3｜顶会契合 6.7｜可行性 5.7｜差异化 6.7</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=34，reviewer_cross=28，meta=38</p>
+<p><strong>针对的问题</strong>：冲突消解、遗忘、版本更新通常被拆成独立模块：TCR 处理证据冲突，ConInstruct 处理指令冲突，Mem++ 处理文档版本，遗忘被简化为过滤或删除；但长期 agent 需要统一知道某条对话偏好、工具轨迹、外部文档或参数知识从何时生效、何时失效、被什么来源覆盖、是否可恢复。当前缺少把冲突、过期、噪声和遗忘统一为时间有效状态转换的问题形式化。</p>
+<p><strong>为什么是现在</strong>：长期 agent 同时维护用户偏好、工具经验、外部文档和模型参数知识，多源版本冲突开始常态化；可审计、可删除、可恢复的合规需求也在增强，使得时间有效性和生命周期管理从工程细节变成核心能力。</p>
+<p><strong>模式对标</strong>：对应模式库中的『失败模式的系统化命名与分解』，类似 ReAct/Tree of Thoughts 把模糊失败拆成显式过程；也借鉴 HippoRAG 的教训：跨领域隐喻必须落成可操作算法，这里则落成状态、时间戳、优先级和可逆转换。</p>
+<p><strong>贡献类型</strong>：新问题形式化</p>
+<p><strong>验证路径</strong>：在偏好更新、文档版本、工具轨迹冲突和指令冲突任务上，对比 TCR、ConInstruct、Mem++、普通 RAG/重排；若统一时间有效性裁决在时间点事实正确率、冲突解释、可逆删除和错误归因上赢，说明生命周期形式化比局部冲突模块更根本。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人可能认为这是数据库版本控制或时间知识图谱的旧概念迁移；需要证明它在开放文本、LLM agent 任务和成本约束下产生显著收益，而不是只提供一个工程化 schema。</p>
+<p><strong>评审一句话</strong>：将冲突遗忘统一为时间有效性的形式化有洞见，但易被批为数据库旧概念迁移，证据链中等。</p></body></html>

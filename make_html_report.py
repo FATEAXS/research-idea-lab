@@ -109,20 +109,35 @@ def idea_section(run_dir, idea_id, rounds, ranked_info):
     tldr = load(run_dir / "final" / f"tldr_{idea_id}.json")
     tldr_html = ""
     if tldr:
-        inn = "".join(f"<li>{esc(x)}</li>"
-                      for x in (tldr.get("core_innovation") or []))
-        tldr_html = (
-            f'<div class="tldr"><div class="oneliner">💡 {esc(tldr.get("one_liner", ""))}</div>'
-            f'<b>核心创新</b><ul>{inn}</ul>'
-            f'<p><b>方法核心</b>：{esc(tldr.get("method_core"))}</p>'
-            f'<p><b>具体走查</b>：{esc(tldr.get("concrete_example"))}</p>'
-            f'<p><b>和最接近工作的区别</b>：{esc(tldr.get("vs_prior"))}</p>'
-            f'<p><b>凭什么成立</b>：{esc(tldr.get("why_works"))}</p>'
-            f'<p><b>成功标准</b>：{esc(tldr.get("success_criteria"))}</p>'
-            f'<p><b>先做的验证</b>：{esc(tldr.get("how_to_verify"))}</p>'
-            f'<p><b>最大的坑</b>：{esc(tldr.get("biggest_risk"))}</p></div>')
-        card_html = (f'{tldr_html}<details><summary>展开完整卡片（字段全文，较长）</summary>'
-                     f'{card_html}</details>')
+        if tldr.get("q1_problem"):  # 叙事五问版
+            inn = "".join(f"<li>{esc(x)}</li>"
+                          for x in (tldr.get("core_innovation") or []))
+            q = lambda k: esc(tldr.get(k) or "（略）")
+            tldr_html = (
+                f'<div class="tldr"><div class="oneliner">💡 {esc(tldr.get("story_hook", ""))}</div>'
+                f'<p><b>① 针对什么问题</b>：{q("q1_problem")}</p>'
+                f'<p><b>② 现有方法缺陷</b>：{q("q2_flaws")}</p>'
+                f'<p><b>③ 我们怎么解决</b>：{q("q3_our_solution")}</p>'
+                f'<p><b>④ 为什么有效</b>：{q("q4_why_it_works")}</p>'
+                f'<p><b>⑤ 怎么验证</b>：{q("q5_verify")}</p>'
+                f'<p><b>⚠ 最大的坑</b>：{q("biggest_risk")}</p></div>')
+            card_html = (f'{tldr_html}<details><summary>展开完整卡片（字段全文，较长）</summary>'
+                         f'{card_html}</details>')
+        else:  # 旧版字段兼容
+            inn = "".join(f"<li>{esc(x)}</li>"
+                          for x in (tldr.get("core_innovation") or []))
+            tldr_html = (
+                f'<div class="tldr"><div class="oneliner">💡 {esc(tldr.get("one_liner", ""))}</div>'
+                f'<b>核心创新</b><ul>{inn}</ul>'
+                f'<p><b>方法核心</b>：{esc(tldr.get("method_core"))}</p>'
+                f'<p><b>具体走查</b>：{esc(tldr.get("concrete_example"))}</p>'
+                f'<p><b>和最接近工作的区别</b>：{esc(tldr.get("vs_prior"))}</p>'
+                f'<p><b>凭什么成立</b>：{esc(tldr.get("why_works"))}</p>'
+                f'<p><b>成功标准</b>：{esc(tldr.get("success_criteria"))}</p>'
+                f'<p><b>先做的验证</b>：{esc(tldr.get("how_to_verify"))}</p>'
+                f'<p><b>最大的坑</b>：{esc(tldr.get("biggest_risk"))}</p></div>')
+            card_html = (f'{tldr_html}<details><summary>展开完整卡片（字段全文，较长）</summary>'
+                         f'{card_html}</details>')
     return f"""
     <details class="idea"><summary>
       <b>{esc(idea_id)}</b>｜{esc(ranked_info.get('title', ''))}

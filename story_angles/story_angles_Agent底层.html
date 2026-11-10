@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>方法设计</title><style>
+body{font-family:"Microsoft YaHei",system-ui,sans-serif;max-width:920px;margin:28px auto;
+     padding:0 18px;color:#222;line-height:1.75;background:#fafafa}
+h1{font-size:1.5em;border-bottom:3px solid #2c6fbb;padding-bottom:8px}
+h2{font-size:1.25em;border-bottom:1px solid #d5d5d5;padding-bottom:4px;margin-top:1.8em}
+h3{color:#2c6fbb}
+code{background:#f0f2f5;border-radius:4px;padding:1px 5px;font-family:Consolas,monospace}
+pre{background:#f0f2f5;border-radius:8px;padding:12px 14px;overflow-x:auto}
+pre code{background:none;padding:0}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.92em}
+th,td{border:1px solid #e0e0e0;padding:7px 10px;text-align:left}
+th{background:#eef3f9}
+blockquote{border-left:4px solid #2c6fbb;background:#eef4fb;margin:12px 0;padding:8px 14px;color:#345}
+strong{color:#111}
+</style></head><body><h1>「Agent底层」顶会故事角度候选（三评审模型独立盲评，按平均总分排序）</h1>
+<table>
+<thead>
+<tr>
+<th>排名</th>
+<th>总分</th>
+<th>故事一句话</th>
+<th>贡献类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>40.0</strong></td>
+<td>我们一直把「会调用工具」当 agent 能力，却没人把「敢不调用工具」当能力来度量。</td>
+<td>新问题形式化</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>37.0</strong></td>
+<td>长程 agent 的瓶颈不是上下文不够长，而是我们一直把任务账本和聊天记录写在同一张纸上。</td>
+<td>新机制</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>35.67</strong></td>
+<td>大家都在修 agent 的错，没人问这些错是不是同一种错。</td>
+<td>新实证分析</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>34.0</strong></td>
+<td>所有 planner 都在声称计划更有用，但没人能量化：计划到底是在第几步被执行弄丢的。</td>
+<td>新基准</td>
+</tr>
+</tbody>
+</table>
+<h2>排名1（40.0 分）：我们一直把「会调用工具」当 agent 能力，却没人把「敢不调用工具」当能力来度量。</h2>
+<p><strong>五维评分</strong>：钩子 8.7｜证据 8.0｜顶会契合 8.0｜可行性 8.0｜差异化 7.3</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=42，reviewer_cross=35，meta=43</p>
+<p><strong>针对的问题</strong>：工具增强和规划增强 agent（ReAct、tool-augmented planner、MCP 工具链）默认「更多工具调用和更多规划步骤通常有帮助」，但 TRAJECT-Bench、工具幻觉和成本/延迟约束评测显示调用本身可能引入非法参数、错误观察和级联失败；社区仍缺少「何时不该调用/不该规划」的可验证判据。</p>
+<p><strong>为什么是现在</strong>：工具生态和长工具列表使调用成本、上下文过载和错误传播变得显著；When Do Tools and Planning Help、TRAJECT-Bench、AGENTIF 等开始提供成本敏感和轨迹级评价，使必要性门控第一次可被严格验证。</p>
+<p><strong>模式对标</strong>：模式一「把默认流程变成可检验命题」；类似 DPO 质疑 RLHF 中强化学习必要性，也呼应 Toolformer/工具门控 position，但把问题从会不会用工具转为是否必须用工具。</p>
+<p><strong>贡献类型</strong>：新问题形式化</p>
+<p><strong>验证路径</strong>：在 TRAJECT-Bench、AGENTIF、Event-QA/CMV 等成本敏感设置下对比 always-tool、ReAct、planner-first 与必要性门控策略；若在相同或更低成本/延迟下成功率不降且非法调用、错误传播下降，说明少调用不是偷懒而是更稳。</p>
+<p><strong>审稿人最可能攻击的点</strong>：可能被审稿人视为简单 abstention 或阈值调参；需要证明门控判据跨模型、跨工具配置稳定，并且不是通过回避困难任务获得表面收益。</p>
+<p><strong>评审一句话</strong>：“敢不调用工具”这一反向度量极具挑衅性，证据完备，验证路径可控，容易激起讨论。</p>
+<h2>排名2（37.0 分）：长程 agent 的瓶颈不是上下文不够长，而是我们一直把任务账本和聊天记录写在同一张纸上。</h2>
+<p><strong>五维评分</strong>：钩子 8.0｜证据 7.7｜顶会契合 7.7｜可行性 6.7｜差异化 7.0</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=40，reviewer_cross=33，meta=38</p>
+<p><strong>针对的问题</strong>：长程 agent 系统（如 MemGPT、长上下文助手、摘要式记忆）默认把任务状态、完成判断和执行历史混入自然语言上下文，认为只要上下文足够长或会被摘要，状态就能被正确维护；LongHorizon-Harness 已指出这会造成错误自我评估传播，但尚未有人把「状态账本」从「对话历史」中剥离出来并系统验证其收益。</p>
+<p><strong>为什么是现在</strong>：长窗口和记忆框架已经普及，但 LongHorizon-Harness、Compression-Induced Goal Drift 等工作开始显示目标与状态维护失败并不随窗口变长自动消失；同时 7B/LoRA 使轻量状态控制器可以低成本验证。</p>
+<p><strong>模式对标</strong>：模式二「结构性浪费」+ 模式一「隐式假设可检验」；类似 QLoRA 找到最贵路径并替换，也对标 MemGPT/CLM 的上下文管理，但把「状态」作为独立可维护对象。</p>
+<p><strong>贡献类型</strong>：新机制</p>
+<p><strong>验证路径</strong>：在 LongHorizon-Harness、LongMemEval-S 和多步工具任务上对比 full-context、摘要记忆、MemGPT 式分页记忆；若状态准确率、完成判断校准和最终成功率提升，同时 token/延迟下降，说明收益来自状态剥离而非更长上下文。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人可能认为这只是外部 scratchpad 或提示工程；需要消融证明状态结构化、自我评估校准和成本收益是主要因果，而不是单纯增加一个输出字段。</p>
+<p><strong>评审一句话</strong>：状态账本剥离的钩子清晰、证据扎实，但需要在消融中强证明结构化的因果性。</p>
+<h2>排名3（35.67 分）：大家都在修 agent 的错，没人问这些错是不是同一种错。</h2>
+<p><strong>五维评分</strong>：钩子 8.0｜证据 7.0｜顶会契合 8.0｜可行性 4.7｜差异化 8.0</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=39，reviewer_cross=34，meta=34</p>
+<p><strong>针对的问题</strong>：工具调用错误、长指令违反、压缩目标漂移、状态误判通常被当作独立模块问题分别修补，但缺少一个统一检验：这些失败是否都源自任务约束在上下文中被局部显著信息覆盖，并通过后续观察和动作放大；现有归因工作能定位可疑步骤，却没有把归因、干预和修复连成闭环。</p>
+<p><strong>为什么是现在</strong>：错误累积鞅分析、AGENTIF 长指令失败、Compression-Induced Goal Drift、LongHorizon-Harness 状态误判同时出现，提供了足够多的失败证据；但社区仍缺少跨失效类型的统一测量和因果干预，使统一解释变得可验证。</p>
+<p><strong>模式对标</strong>：模式三「失败模式系统化命名与分解」+ 模式六「简单规律可扩展」；类似 ReAct/ToT 把单步推理失败拆成过程结构，但这里把多类 agent 失败统一到约束存活率和错误放大系数上。</p>
+<p><strong>贡献类型</strong>：新实证分析</p>
+<p><strong>验证路径</strong>：在工具调用、长指令遵循、上下文压缩、状态评估四类基准上统一测量约束存活率和错误放大系数，并用显式约束回灌/隔离状态/重放干预做因果检验；若同一干预跨四类失败稳定降低级联错误，说明失效同源，单点补丁不够。</p>
+<p><strong>审稿人最可能攻击的点</strong>：统一叙事可能被攻击为过度概括或忽略任务难度混淆；需要展示每类失败的独立基线、控制模型能力和任务长度，并证明统一指标不是事后相关性。</p>
+<p><strong>评审一句话</strong>：统一失败源的叙事有吸引力且区分度最高，但跨四类基准的因果干预实验一周内很紧凑。</p>
+<h2>排名4（34.0 分）：所有 planner 都在声称计划更有用，但没人能量化：计划到底是在第几步被执行弄丢的。</h2>
+<p><strong>五维评分</strong>：钩子 7.7｜证据 6.3｜顶会契合 7.3｜可行性 5.3｜差异化 7.3</p>
+<p><strong>三评审分别给分</strong>：reviewer_domain=35，reviewer_cross=34，meta=33</p>
+<p><strong>针对的问题</strong>：现有 agent 评测主要看最终成功率、工具调用合法性或指令遵循分数，但规划-行动差距缺少过程级度量：初始计划中的目标、约束和状态假设在后续执行中保留了多少、在哪一步丢失、以何种方式被替换，均没有被系统量化；ReflectiChain 提出语义-执行漂移但仍缺少可复现基准。</p>
+<p><strong>为什么是现在</strong>：长程浏览、GUI、工具调用任务变多，使计划与执行之间的漂移成为主要失败源；ReflectiChain、Compression-Induced Goal Drift 已提供漂移概念，轨迹对齐和自动校验让过程级度量可行。</p>
+<p><strong>模式对标</strong>：模式四「评测空隙」+ 模式三「失败模式命名与分解」；对标 LongMemEval 把长程记忆拆成可测能力，这里把规划-行动差距拆成目标保持、约束保持、状态一致性和可恢复性。</p>
+<p><strong>贡献类型</strong>：新基准</p>
+<p><strong>验证路径</strong>：构建语义-执行漂移基准，报告多模型在多步任务上的漂移曲线、首次丢失点和恢复率；若最终成功率与漂移指标弱相关，且现有 planner/verifier 不能显著降低漂移，说明排行榜掩盖了真实规划-行动差距。</p>
+<p><strong>审稿人最可能攻击的点</strong>：审稿人可能质疑漂移判定依赖 LLM judge 或合成任务；需要人工校验、规则化指标、真实任务子集，以及证明漂移指标对模型版本和任务扰动稳定。</p>
+<p><strong>评审一句话</strong>：计划-行动差距的量化钩子不错，但构建新基准与漂移指标验证的工作量对一周内完成挑战较大。</p></body></html>
